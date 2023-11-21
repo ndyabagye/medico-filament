@@ -12,7 +12,8 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'brand_id', 'name', 'slug', 'sku', 'image', 'quantity', 'is_visible', 'type', 'is_featured', 'description'
+        'brand_id', 'name', 'slug', 'sku', 'image', 'quantity', 'price',
+        'is_visible', 'published_at', 'type', 'is_featured', 'description'
     ];
 
     public function brand(): BelongsTo
