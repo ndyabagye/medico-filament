@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('url')->nullable();
             $table->string('primary_hex')->nullable();
             $table->boolean('is_visible')->default(false);
-            $table->longText('description')->default(false);
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }
