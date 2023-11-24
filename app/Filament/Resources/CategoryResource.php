@@ -7,11 +7,22 @@ use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Forms\Components\Group;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Select;
+use Illuminate\Support\Str;
+
 
 class CategoryResource extends Resource
 {
@@ -27,7 +38,39 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Group::make()
+                    ->schema([
+                        Section::make([
+                            TextInput::make('name')
+                                ->required()
+                                ->live(onBlur: true)
+                                ->unique()
+                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                    if ($operation !== 'create') {
+                                        return;
+                                    }
+
+                                    $set('slug', Str::slug($state));
+                                }),
+                            TextInput::make('slug')
+                                ->disabled()
+                                ->dehydrated()
+                                ->required()
+                                ->unique(Category::class, 'slug', ignoreRecord: true),
+                            MarkdownEditor::make('description')->columnSpan('full'),
+                        ])->columns(2)
+                    ]),
+                Group::make()
+                    ->schema([
+                        Section::make('Status')
+                            ->schema([
+                                Toggle::make('is_visible')->label('Visibility')
+                                    ->helperText('Enable or disable category visibility')
+                                    ->default(true),
+                                Select::make('parent_id')
+                                    ->relationship('parent', 'name')
+                            ])
+                    ])
             ]);
     }
 
@@ -35,7 +78,10 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('name')->sortable()->searchable(),
+                TextColumn::make('parent.name')->label('Parent')->sortable()->searchable(),
+                IconColumn::make('is_visible')->label('Visibility')->boolean()->sortable(),
+                TextColumn::make('updated_at')->date()->label('Updated Date')->sortable(),
             ])
             ->filters([
                 //

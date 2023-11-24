@@ -47,7 +47,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Builder;
-
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 use Illuminate\Support\Str;
@@ -65,6 +65,32 @@ class ProductResource extends Resource
 
     protected static ?string $navigationLabel = 'Products';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
+    protected static int $globalSearchResultsLimit = 20;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'slug', 'description'];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Brand' => $record->brand->name,
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['brand']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -75,7 +101,6 @@ class ProductResource extends Resource
                             TextInput::make('name')
                                 ->required()
                                 ->live(onBlur: true)
-                                ->unique()
                                 ->afterStateUpdated(function (string $operation, $state, Set $set) {
                                     if ($operation !== 'create') {
                                         return;
@@ -93,7 +118,6 @@ class ProductResource extends Resource
                     Section::make('Pricing and Inventory')->schema([
                         TextInput::make('sku')
                             ->label("SKU (Stock Keeping Unit)")
-                            ->unique()
                             ->required(),
                         TextInput::make('price')
                             ->numeric()
@@ -134,7 +158,8 @@ class ProductResource extends Resource
                         ->imageEditor(),
                 ])->collapsible(),
                 Section::make('Associations')->schema([
-                    Select::make('brand_id')->relationship('brand', 'name'),
+                    Select::make('brand_id')->relationship('brand', 'name')->required(),
+                    Select::make('categories')->relationship('categories', 'name')->multiple()->required(),
                 ])
             ]),
         ]);
