@@ -2,17 +2,19 @@
 
 1. Clone this repo -> git clone
 
-2. composer install
+2. composer install --no-dev --optimize-autoloader
 
-3. cp env.example env
+3. cp .env.example .env
 
 4. php artisan key:generate
 
 5. php artisan storage:link
 
-6. php artisan migrate
+6. php artisan route:cache
 
-7. php artisan serve
+7. php artisan migrate
+
+8. php artisan serve
 
 ### More about Laravel
 
